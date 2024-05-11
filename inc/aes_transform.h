@@ -1,5 +1,5 @@
-#ifndef __CRYPTOGRAPHY_AES_H__
-#define __CRYPTOGRAPHY_AES_H__
+#ifndef __CRYPTOGRAPHY_AES_TRANSFORM_H__
+#define __CRYPTOGRAPHY_AES_TRANSFORM_H__
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
@@ -7,7 +7,6 @@
 #include <stdint.h>
 
 // my includes
-#include "aes_key.h"
 
 // #-------------------------------#
 // |            macros             |
@@ -24,25 +23,15 @@
 // #-------------------------------#
 // | global function declarations  |
 // #-------------------------------#
+void aes_add_round_key(uint8_t *state, const uint32_t* w);
 
+void mix_columns(uint8_t *state);
+void shift_rows(uint8_t *state);
+void sub_bytes(uint8_t *state);
 
-/**
- * @brief Encrypt single 128-bit block
- *
- * @param input
- * @param key_p
- * @param output
- */
-void aes_encrypt_block(const uint8_t *input, const Aes_Key *key_p, uint8_t *output);
-
-/**
- * @brief Decrypt single 128-bit block
- *
- * @param input
- * @param key_p
- * @param output
- */
-void aes_decrypt_block(const uint8_t *input, const Aes_Key *key_p, uint8_t *output);
+void inv_mix_columns(uint8_t *state);
+void inv_shift_rows(uint8_t *state);
+void inv_sub_bytes(uint8_t *state);
 
 // #-------------------------------#
 // |  global function definitions  |
