@@ -44,6 +44,9 @@ void aes_encrypt_block(const uint8_t *input, const Aes_Key *key_p, uint8_t *outp
  */
 void aes_decrypt_block(const uint8_t *input, const Aes_Key *key_p, uint8_t *output);
 
+void aes_encrypt_aligned(const uint8_t *input, size_t input_len, const Aes_Key *key_p, uint8_t *output);
+void aes_decrypt_aligned(const uint8_t *input, size_t input_len, const Aes_Key *key_p, uint8_t *output);
+
 // #-------------------------------#
 // |  global function definitions  |
 // #-------------------------------#

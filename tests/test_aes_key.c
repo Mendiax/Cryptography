@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 void test_aes_key(void){
-    uint8_t key[256] = {0};
+    uint8_t key[256 / 8] = {0};
     AES_KEY_TYPE type = AES_B256;
     Aes_Key* key_p = aes_new_key(type, key);
     assert(key_p);
@@ -18,19 +18,15 @@ void test_aes_key(void){
 }
 
 void test_aes_key_expansion(void) {
-    uint8_t key[128] = {0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
+    uint8_t key[] = {0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
     AES_KEY_TYPE type = AES_B128;
     Aes_Key* key_p = aes_new_key(type, key);
     assert(key_p);
-    const size_t nb = get_number_of_rounds(key_p);
-    uint32_t* w = malloc(4*(nb+1) * sizeof(uint32_t));
-
-    get_key_expansion(key_p, w);
 
     // check some values
-    assert(w[0] == 0x2b7e1516);
-    assert(w[4] == 0xa0fafe17);
-    assert(w[43] == 0xb6630ca6);
+    assert(key_p->key[0] == 0x2b7e1516);
+    assert(key_p->key[4] == 0xa0fafe17);
+    assert(key_p->key[43] == 0xb6630ca6);
 
     // cleanup
     aes_delete_key(&key_p);

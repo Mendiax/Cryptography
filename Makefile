@@ -41,6 +41,7 @@ ifeq ("$(origin DEBUG)", "command line")
 	GDB := -g
 	CPP_OPT :=
 	C_OPT :=
+	C_FLAGS += -fsanitize=address
 else
 	GGDB :=
 	GDB :=

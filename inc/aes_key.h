@@ -27,7 +27,7 @@ typedef enum AES_KEY_TYPE{
 
 typedef struct Aes_Key{
     AES_KEY_TYPE type;
-    uint8_t key[];
+    uint32_t key[];
 } Aes_Key;
 
 // #-------------------------------#
@@ -54,9 +54,23 @@ Aes_Key* aes_new_key(AES_KEY_TYPE type, const uint8_t* keys);
  */
 void aes_delete_key(Aes_Key** aes_key_pp);
 
-size_t get_number_of_rounds(const Aes_Key* key_p);
+/**
+ * @brief Get the number of rounds for AES
+ *
+ * @param type
+ * @return size_t
+ */
+size_t aes_type_get_number_of_rounds(AES_KEY_TYPE type);
 
-void get_key_expansion(const Aes_Key* key_p, uint32_t* w_out);
+/**
+ * @brief Get the number of words per key
+ *
+ * @param type
+ * @return size_t
+ */
+size_t aes_type_get_number_of_keys(AES_KEY_TYPE type);
+
+
 
 
 // #-------------------------------#

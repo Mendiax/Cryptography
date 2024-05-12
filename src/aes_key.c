@@ -27,6 +27,17 @@
 // #------------------------------#
 // | static functions declarations|
 // #------------------------------#
+/**
+ * @brief Expand key
+ *
+ * @param key_p
+ * @param type
+ * @param w_out
+ */
+static void get_key_expansion(const uint8_t* key_p,
+                       const AES_KEY_TYPE type,
+                       uint32_t* w_out);
+
 static inline uint32_t get_round_constant(size_t i);
 static inline uint32_t sub_word(uint32_t word);
 static inline uint32_t rot_word(uint32_t word);
@@ -37,11 +48,17 @@ static void initialize_aes_sbox(uint8_t sbox[256]);
 // #------------------------------#
 Aes_Key* aes_new_key(AES_KEY_TYPE type, const uint8_t* keys){
     assert(type > 0); // check for negative data input
-    const size_t key_size_bytes = type / 8;
+    // const size_t key_size_bytes = type / 8;
 
-    Aes_Key* key_p = malloc(sizeof(Aes_Key) + key_size_bytes); // FAM
+    const size_t nr = aes_type_get_number_of_rounds(type);
+    const size_t expansion_key_size = NB*(nr+1) * sizeof(uint32_t);
+
+    Aes_Key* key_p = malloc(sizeof(Aes_Key) + expansion_key_size); // FAM
+    assert(key_p);
+    memset(key_p, 0, sizeof(Aes_Key) + expansion_key_size);
+
     key_p->type = type;
-    memcpy(key_p->key, keys, key_size_bytes);
+    get_key_expansion(keys, key_p->type, key_p->key);
 
     return key_p;
 }
@@ -53,8 +70,8 @@ void aes_delete_key(Aes_Key** aes_key_pp) {
     *aes_key_pp = NULL;
 }
 
-size_t get_number_of_rounds(const Aes_Key* key_p){
-    switch (key_p->type) {
+size_t aes_type_get_number_of_rounds(AES_KEY_TYPE type){
+    switch (type) {
         case AES_B128: return 10;
         case AES_B192: return 12;
         case AES_B256: return 14;
@@ -65,28 +82,36 @@ size_t get_number_of_rounds(const Aes_Key* key_p){
     assert(0);
     return 0;
 }
+size_t aes_type_get_number_of_keys(AES_KEY_TYPE type){
+    return type / 32;
+}
 
-/**
- * @brief Get the key expansion array
- *
- * @param key_p
- * @param w_out
- */
-void get_key_expansion(const Aes_Key* key_p, uint32_t* w_out){
-    const size_t nk = key_p->type / 32;
+
+
+// #------------------------------#
+// | static functions definitions |
+// #------------------------------#
+static void get_key_expansion(const uint8_t* key_p,
+                       const AES_KEY_TYPE type,
+                       uint32_t* w_out){
+    const size_t nk = aes_type_get_number_of_keys(type);
     uint32_t temp;
     size_t i = 0;
     while (i < nk){
-        w_out[i] = (uint32_t)key_p->key[4*i] << 24 | (uint32_t)key_p->key[4*i + 1] << 16 |(uint32_t)key_p->key[4*i + 2] << 8 | (uint32_t)key_p->key[4*i + 3];
+        w_out[i] =  (uint32_t)key_p[4*i + 0] << 24 |
+                    (uint32_t)key_p[4*i + 1] << 16 |
+                    (uint32_t)key_p[4*i + 2] << 8 |
+                    (uint32_t)key_p[4*i + 3];
         i = i+1;
     }
     i = nk;
 
-    const size_t nr = get_number_of_rounds(key_p);
+    const size_t nr = aes_type_get_number_of_rounds(type);
     while (i < NB * (nr+1)) {
         temp = w_out[i-1];
         if (i % nk == 0) {
-            temp = sub_word(rot_word(temp)) ^ get_round_constant(i/nk);
+            temp = sub_word(rot_word(temp)) ^
+                            get_round_constant(i/nk);
         }
         else if ((nk > 6) && (i % nk == 4)) {
             temp = sub_word(temp);
@@ -95,10 +120,6 @@ void get_key_expansion(const Aes_Key* key_p, uint32_t* w_out){
         i = i + 1;
     }
 }
-
-// #------------------------------#
-// | static functions definitions |
-// #------------------------------#
 
 static inline uint32_t get_round_constant(size_t i) {
     assert(i <= 10 && i > 0);
