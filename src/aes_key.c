@@ -83,12 +83,12 @@ void get_key_expansion(const Aes_Key* key_p, uint32_t* w_out){
     i = nk;
 
     const size_t nr = get_number_of_rounds(key_p);
-    while (i < 4 * (nr+1)) {
+    while (i < NB * (nr+1)) {
         temp = w_out[i-1];
         if (i % nk == 0) {
             temp = sub_word(rot_word(temp)) ^ get_round_constant(i/nk);
         }
-        else if (nk > 6 && i % nk == 4) {
+        else if ((nk > 6) && (i % nk == 4)) {
             temp = sub_word(temp);
         }
         w_out[i] = w_out[i-nk] ^ temp;

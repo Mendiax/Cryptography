@@ -150,7 +150,7 @@ void test_aes_2_way_128(void) {
 
 void test_aes_2_way_192(void) {
   uint8_t* key = str_to_arr("000102030405060708090a0b0c0d0e0f1011121314151617");
-  AES_KEY_TYPE type = AES_B128;
+  AES_KEY_TYPE type = AES_B192;
   Aes_Key *key_p = aes_new_key(type, key);
   assert(key_p);
 
@@ -181,7 +181,7 @@ void test_aes_2_way_192(void) {
 }
 void test_aes_2_way_256(void) {
   uint8_t* key = str_to_arr("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f");
-  AES_KEY_TYPE type = AES_B128;
+  AES_KEY_TYPE type = AES_B256;
   Aes_Key *key_p = aes_new_key(type, key);
   assert(key_p);
 

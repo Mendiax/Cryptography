@@ -15,8 +15,8 @@ int main(void){
     RUN(test_aes_transform());
     RUN(test_aes_inv_cipher());
     RUN(test_aes_2_way_128());
-    // RUN(test_aes_2_way_192());
-    // RUN(test_aes_2_way_256());
+    RUN(test_aes_2_way_192());
+    RUN(test_aes_2_way_256());
 
     return 0;
 }
