@@ -13,6 +13,7 @@ int main(void){
     RUN(test_aes_key());
     RUN(test_aes_key_expansion());
     RUN(test_aes_cipher());
+    RUN(test_aes_transform_avx());
     RUN(test_aes_transform());
     RUN(test_aes_inv_cipher());
     RUN(test_aes_2_way_128());

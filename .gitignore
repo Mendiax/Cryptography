@@ -59,3 +59,4 @@ gen_rci.py
 scripts/config.sh
 .vscode/
 inc/int256.h
+profile.txt

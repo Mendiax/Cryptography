@@ -26,14 +26,19 @@ OBJ_TEST_C := $(TEST_C:$(FOLDER_TESTS)/%.c=$(FOLDER_BUILD)/%.o)
 CXX ?= g++
 CC ?= gcc
 
+# optimization level
+O ?= 3
+
+AVX ?= -DUSE_AVX
+
 CPP_STD   := -std=c++17
-CPP_OPT   := -O3
+CPP_OPT   := -O$(O)
 CPP_FLAGS :=
 CPP_WARNS :=
 
 C_STD   := -std=c99
-C_OPT   := -O3
-C_FLAGS :=
+C_OPT   := -O$(O)
+C_FLAGS := -mavx2 $(AVX)
 C_WARNS :=
 
 ifeq ("$(origin DEBUG)", "command line")
@@ -41,7 +46,7 @@ ifeq ("$(origin DEBUG)", "command line")
 	GDB := -g
 	CPP_OPT :=
 	C_OPT :=
-	C_FLAGS += -fsanitize=address
+	C_FLAGS += -fsanitize=address -pg
 else
 	GGDB :=
 	GDB :=
@@ -73,6 +78,7 @@ $(FOLDER_BUILD)/%.o: $(FOLDER_APP)/%.cpp
 
 $(FOLDER_BUILD)/%.o: $(FOLDER_SRC)/%.c
 	$(CC) $(C_FLAGS) $(I_INC) -c $< -o $@
+	$(CC) $(C_FLAGS) $(I_INC) -c $< -o $@.s -S -masm=intel -fverbose-asm
 
 $(FOLDER_BUILD)/%.o: $(FOLDER_APP)/%.c
 	$(CC) $(C_FLAGS) $(I_INC) -c $< -o $@

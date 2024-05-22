@@ -3,8 +3,13 @@
 // #------------------------------#
 // c includes
 #include <assert.h>
+#include <stdio.h>
+#include <emmintrin.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <immintrin.h>
 
 // my includes
 #include "aes_transform.h"
@@ -25,7 +30,8 @@
 // | static functions declarations|
 // #------------------------------#
 
-static uint8_t galois_mul(uint8_t a, uint8_t b);
+static uint8_t galois_mul(uint16_t a, uint8_t b);
+static void galois_mul_avx(const uint8_t* restrict state, const uint8_t* restrict b, uint8_t* restrict out);
 
 // #------------------------------#
 // | global function definitions  |
@@ -45,43 +51,55 @@ void aes_add_round_key(uint8_t *state_matrix, const uint32_t* w){
 
 void mix_columns(uint8_t *state) {
     uint8_t tmp[4];
-    for (int i = 0; i < 4; ++i) {
+    for (size_t i = 0; i < 4; ++i) {
         // Perform MixColumns operation for each column of the state matrix
 
         // Calculate the column index in the state matrix
-        int col_idx = i * 4;
+        const size_t col_idx = i * 4;
 
-        tmp[0] = galois_mul(state[col_idx], 2) ^ galois_mul(state[col_idx + 1], 3) ^ state[col_idx + 2] ^ state[col_idx + 3];
-        tmp[1] = state[col_idx] ^ galois_mul(state[col_idx + 1], 2) ^ galois_mul(state[col_idx + 2], 3) ^ state[col_idx + 3];
-        tmp[2] = state[col_idx] ^ state[col_idx + 1] ^ galois_mul(state[col_idx + 2], 2) ^ galois_mul(state[col_idx + 3], 3);
-        tmp[3] = galois_mul(state[col_idx], 3) ^ state[col_idx + 1] ^ state[col_idx + 2] ^ galois_mul(state[col_idx + 3], 2);
+        tmp[0] = galois_mul(state[col_idx], 2) ^ galois_mul(state[col_idx + 1], 3) ^ state[col_idx + 2]                     ^ state[col_idx + 3];
+        tmp[1] = state[col_idx]                     ^ galois_mul(state[col_idx + 1], 2) ^ galois_mul(state[col_idx + 2], 3) ^ state[col_idx + 3];
+        tmp[2] = state[col_idx]                     ^ state[col_idx + 1]                     ^ galois_mul(state[col_idx + 2], 2) ^ galois_mul(state[col_idx + 3], 3);
+        tmp[3] = galois_mul(state[col_idx], 3) ^ state[col_idx + 1]                     ^ state[col_idx + 2]                     ^ galois_mul(state[col_idx + 3], 2);
 
         // Copy the result back to the state matrix
-        for (int j = 0; j < 4; ++j) {
-            state[col_idx + j] = tmp[j];
-        }
+        memcpy(&state[col_idx], tmp, sizeof(tmp));
     }
 }
 
 void inv_mix_columns(uint8_t *state) {
-    uint8_t tmp[4];
-    for (int i = 0; i < 4; ++i) {
+
+    #ifdef USE_AVX
+     uint8_t tmp[4];
+     static const uint8_t galois_const0[] = {0xe, 0xb, 0xd, 0x9, 0x9, 0xe, 0xb, 0xd};
+     static const uint8_t galois_const2[] = {0xd, 0x9, 0xe, 0xb, 0xb, 0xd, 0x9, 0xe};
+
+    for (size_t i = 0; i < 4; ++i) {
+        // Perform MixColumns operation for each column of the state matrix
+        // Calculate the column index in the state matrix
+        const size_t col_idx = i * 4;
+        galois_mul_avx(&state[col_idx], galois_const0, &tmp[0]);
+        galois_mul_avx(&state[col_idx], galois_const2, &tmp[2]);
+
+        memcpy(&state[col_idx], tmp, sizeof(tmp));
+    }
+    #else
+        uint8_t tmp[4];
+
+    for (size_t i = 0; i < 4; ++i) {
         // Perform MixColumns operation for each column of the state matrix
 
         // Calculate the column index in the state matrix
-        int col_idx = i * 4;
-
+        const size_t col_idx = i * 4;
         tmp[0] = galois_mul(state[col_idx], 0xe) ^ galois_mul(state[col_idx + 1], 0xb) ^ galois_mul(state[col_idx + 2], 0xd) ^ galois_mul(state[col_idx + 3], 0x9);
         tmp[1] = galois_mul(state[col_idx], 0x9) ^ galois_mul(state[col_idx + 1], 0xe) ^ galois_mul(state[col_idx + 2], 0xb) ^ galois_mul(state[col_idx + 3], 0xd);
         tmp[2] = galois_mul(state[col_idx], 0xd) ^ galois_mul(state[col_idx + 1], 0x9) ^ galois_mul(state[col_idx + 2], 0xe) ^ galois_mul(state[col_idx + 3], 0xb);
         tmp[3] = galois_mul(state[col_idx], 0xb) ^ galois_mul(state[col_idx + 1], 0xd) ^ galois_mul(state[col_idx + 2], 0x9) ^ galois_mul(state[col_idx + 3], 0xe);
 
-
         // Copy the result back to the state matrix
-        for (int j = 0; j < 4; ++j) {
-            state[col_idx + j] = tmp[j];
-        }
+        memcpy(&state[col_idx], tmp, sizeof(tmp));
     }
+    #endif
 }
 
 
@@ -156,9 +174,9 @@ void sub_bytes(uint8_t *state){
         0x70,0x3e,0xb5,0x66,0x48,0x03,0xf6,0x0e,0x61,0x35,0x57,0xb9,0x86,0xc1,0x1d,0x9e,
         0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,
         0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16
-};
+    };
 
-    for (int i = 0; i < 16; ++i) {
+    for (size_t i = 0; i < 16; ++i) {
         state[i] = SBox[state[i]];
     }
 }
@@ -184,7 +202,7 @@ void inv_sub_bytes(uint8_t *state){
     0x17,0x2b,0x04,0x7e,0xba,0x77,0xd6,0x26,0xe1,0x69,0x14,0x63,0x55,0x21,0x0c,0x7d
     };
 
-    for (int i = 0; i < 16; ++i) {
+    for (size_t i = 0; i < 16; ++i) {
         state[i] = SBox[state[i]];
     }
 }
@@ -192,20 +210,63 @@ void inv_sub_bytes(uint8_t *state){
 // #------------------------------#
 // | static functions definitions |
 // #------------------------------#
-
-static uint8_t galois_mul(uint8_t a, uint8_t b) {
+static uint8_t galois_mul(uint16_t a, uint8_t b) {
     uint8_t result = 0;
-    uint8_t high_bit_set;
-    for (int i = 0; i < 8; ++i) {
+    for (size_t i = 0; i < 8; ++i) {
         if (b & 1) {
             result ^= a;
         }
-        high_bit_set = a & 0x80;
         a <<= 1;
-        if (high_bit_set) {
+        if (a & 0x100) {
             a ^= 0x1B;  // XOR with the irreducible polynomial x^8 + x^4 + x^3 + x + 1
         }
         b >>= 1;
     }
     return result;
+}
+
+
+static void galois_mul_avx(const uint8_t* restrict state, const uint8_t* restrict b, uint8_t* restrict out) {
+
+    // load it as 4 16bits values
+    __m128i a_vec = _mm_cvtepu8_epi16(_mm_loadu_si32((__m128i*)state));
+    a_vec = _mm_unpacklo_epi64(a_vec, a_vec);
+    __m128i b_vec = _mm_cvtepu8_epi16(_mm_loadu_si64((__m128i*)b));
+
+
+    __m128i resul_vec = _mm_setzero_si128();
+
+    const __m128i mask_0x1 = _mm_set1_epi16(1);
+    const __m128i mask_0x100 = _mm_set1_epi16(0x100);
+    const __m128i mask_0x1B = _mm_set1_epi16(0x1B);
+
+
+
+    for (size_t i = 0; i < 8; ++i) {
+        __m128i mask = _mm_and_si128(b_vec, mask_0x1);
+        mask = _mm_mullo_epi16(mask, a_vec);
+        resul_vec = _mm_xor_si128(resul_vec, mask);
+        // if (b_vec & 1) {
+        //     result ^= a_vec;
+        // }
+        a_vec = _mm_slli_epi16(a_vec, 1);
+        // a <<= 1;
+        mask = _mm_and_si128(a_vec, mask_0x100);
+        mask = _mm_srli_epi16(mask, 8);
+        mask = _mm_mullo_epi16(mask, mask_0x1B);
+        a_vec = _mm_xor_si128(a_vec, mask);
+        // if (a & 0x100) {
+        //     a ^= 0x1B;  // XOR with the irreducible polynomial x^8 + x^4 + x^3 + x + 1
+        // }
+        b_vec = _mm_srli_epi16(b_vec, 1);
+        // b >>= 1;
+     }
+    uint16_t elements[8];
+    _mm_storeu_si128((__m128i*)elements, resul_vec);
+    for (int j = 0; j < 2; ++j) {
+        out[j] = 0;
+        for (int i = j * 4; i < (j + 1) * 4; ++i) {
+            out[j] ^= elements[i];
+        }
+    }
 }

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "test_utils.h"
 #include "aes.h"
@@ -36,7 +37,7 @@ void run_test_file(size_t file_size) {
     AES_KEY_TYPE type = AES_B128;
     Aes_Key *key_p = aes_new_key(type, key);
     assert(key_p);
-
+    srand(0);
     uint8_t *input = generate_random_data(file_size);
     uint8_t *input_copy = (uint8_t *)malloc(file_size);
     memcpy(input_copy, input, file_size);
@@ -54,6 +55,13 @@ void run_test_file(size_t file_size) {
     aes_encrypt_aligned(input, file_size, key_p, output);
     clock_t end_encrypt = clock();
     double encrypt_time = ((double)(end_encrypt - start_encrypt)) / CLOCKS_PER_SEC;
+
+    // check that input is encrypted
+    if(memcmp(input, output, file_size) == 0){
+        fprintf(stderr, "Encryption failed\n");
+        exit(EXIT_FAILURE);
+    }
+    printf("(%.*s)\n", 10, output);
 
     // Decrypt file and record time
     clock_t start_decrypt = clock();

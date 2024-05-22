@@ -3,7 +3,9 @@
 
 
 void test_aes_cipher(void);
+void test_aes_transform_avx(void);
 void test_aes_transform(void);
+
 void test_aes_inv_cipher(void);
 void test_aes_2_way_128(void);
 void test_aes_2_way_192(void);
