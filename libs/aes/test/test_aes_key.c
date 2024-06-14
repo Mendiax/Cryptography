@@ -1,6 +1,6 @@
 
 #include "test_aes_key.h"
-#include "aes.h"
+#include "aes/aes.h"
 
 #include <stdio.h>
 #include <assert.h>

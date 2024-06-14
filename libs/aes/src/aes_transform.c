@@ -4,15 +4,16 @@
 // c includes
 #include <assert.h>
 #include <stdio.h>
-#include <emmintrin.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USE_AVX
+#include <emmintrin.h>
 #include <immintrin.h>
-
+#endif
 // my includes
-#include "aes_transform.h"
+#include "aes/aes_transform.h"
 
 // #------------------------------#
 // |           macros             |
@@ -226,6 +227,7 @@ static uint8_t galois_mul(uint16_t a, uint8_t b) {
 }
 
 
+#ifdef USE_AVX
 static void galois_mul_avx(const uint8_t* restrict state, const uint8_t* restrict b, uint8_t* restrict out) {
 
     // load it as 4 16bits values
@@ -270,3 +272,4 @@ static void galois_mul_avx(const uint8_t* restrict state, const uint8_t* restric
         }
     }
 }
+#endif
