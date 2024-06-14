@@ -1,6 +1,6 @@
 #include "test_aes_cipher.h"
-#include "aes.h"
-#include "aes_transform.h"
+#include "aes/aes.h"
+#include "aes/aes_transform.h"
 #include "test_utils.h"
 
 #include <assert.h>

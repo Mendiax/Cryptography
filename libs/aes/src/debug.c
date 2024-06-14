@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 // my includes
-#include "debug.h"
+#include "aes/debug.h"
 // #------------------------------#
 // |           macros             |
 // #------------------------------#

@@ -8,9 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 // my includes
-#include "aes.h"
-#include "aes_transform.h"
-#include "debug.h"
+#include "aes/aes.h"
+#include "aes/aes_transform.h"
+#include "aes/debug.h"
 
 // #------------------------------#
 // |           macros             |

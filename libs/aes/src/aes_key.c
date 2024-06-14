@@ -10,7 +10,7 @@
 #include <string.h>
 
 // my includes
-#include "aes_key.h"
+#include "aes/aes_key.h"
 
 // #------------------------------#
 // |           macros             |

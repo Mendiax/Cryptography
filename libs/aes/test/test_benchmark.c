@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "test_utils.h"
-#include "aes.h"
+#include "aes/aes.h"
 #include <assert.h>
 #include <string.h>
 #include <time.h>
