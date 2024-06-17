@@ -13,11 +13,22 @@ else
     CMAKE_FLAGS =
 endif
 
+ifeq ($(D),1)
+    BUILD_TYPE = Debug
+else
+    BUILD_TYPE = Release
+endif
+
+CMAKE_ARGS := -S ./ \
+	-B $(BUILD_DIR) \
+	-DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+
 # Build the main application
 build_main:
 	mkdir -p $(BUILD_DIR)
-	cd $(BUILD_DIR) && cmake .. $(CMAKE_FLAGS)
-	cd $(BUILD_DIR) && make
+	cmake $(CMAKE_FLAGS) $(CMAKE_ARGS)
+	cmake --build ./build --parallel $(NPROCS)
 
 # Build and run all tests
 test: build_main

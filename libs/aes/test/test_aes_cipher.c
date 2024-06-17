@@ -40,80 +40,15 @@ void test_aes_cipher(void) {
   aes_delete_key(&key_p);
 }
 
-static void print_m128i(__m128i resul_vec) {
-  uint16_t elements[sizeof(__m128i) / 2];
-  _mm_storeu_si128((__m128i *)elements, resul_vec);
+// static void print_m128i(__m128i resul_vec) {
+//   uint16_t elements[sizeof(__m128i) / 2];
+//   _mm_storeu_si128((__m128i *)elements, resul_vec);
 
-  for (size_t i = 0; i < sizeof(elements) / sizeof(*elements); ++i) {
-    printf("%04X ", elements[i]);
-  }
-  printf("\n");
-}
-
-void test_aes_transform_avx(void) {
-  uint8_t state[] = {0xff, 0x0ff, 0xff, 0xff, 0xff, 0x0ff, 0xff, 0xff};
-  uint8_t b_p[] =   {0b101, 0b101, 0x0, 0xff, 0b101, 0b101, 0x0, 0xff};
-  unsigned loops = 1;
-  for(int i = 0; i < 1; i++)
-  {
-    uint16_t a = state[i];
-    uint8_t b = b_p[i];
-    uint8_t result = 0;
-    for (size_t i = 0; i < loops; ++i) {
-        // if (b & 1) {
-        //     result ^= a;
-        // }
-        a <<= 1;
-        printf("%x\n", a);
-        if (a & 0x100) {
-            a ^= 0x1B;  // XOR with the irreducible polynomial x^8 + x^4 + x^3 + x + 1
-        }
-        printf("%x\n", a);
-        b >>= 1;
-    }
-  }
-  printf("\n");
-
-  {
-    __m128i a_vec = _mm_cvtepu8_epi16(_mm_loadu_si64((__m128i*)state));
-    __m128i b_vec = _mm_cvtepu8_epi16(_mm_loadu_si64((__m128i*)b_p));
-
-    print_m128i(a_vec);
-    print_m128i(b_vec);
-
-    __m128i resul_vec = _mm_setzero_si128();
-
-    const __m128i mask_0x1 = _mm_set1_epi16(1);
-    const __m128i mask_0x100 = _mm_set1_epi16(0x100);
-    const __m128i mask_0x1B = _mm_set1_epi16(0x1B);
-    printf("loop:\n");
-    for (size_t i = 0; i < loops; ++i) {
-      // const __m128i b_and_0x1_mask = _mm_and_si128(b_vec, mask_0x1);
-      // const __m128i b_and_a_mask = _mm_mullo_epi16(b_and_0x1_mask, a_vec);
-      // resul_vec = _mm_xor_si128(resul_vec, b_and_a_mask);
-      // b_vec = _mm_srli_epi16(b_vec, 1);
-
-      print_m128i(a_vec);
-      a_vec = _mm_slli_epi16(a_vec, 1);
-      print_m128i(a_vec);
-      // a <<= 1;
-      const __m128i a_and_0x100_mask = _mm_and_si128(a_vec, mask_0x100);
-      const __m128i a_and_0x1_mask = _mm_srli_epi16(a_and_0x100_mask, 8);
-      printf("a_and_0x100_mask:");print_m128i(a_and_0x100_mask);
-      printf("a_and_0x1_mask:  ");print_m128i(a_and_0x1_mask);
-      const __m128i a_and_a_mask = _mm_mullo_epi16(a_and_0x1_mask, mask_0x1B);
-      printf("mask_0x1B:       ");print_m128i(mask_0x1B);
-
-      printf("a_and_a_mask:    ");print_m128i(a_and_a_mask);
-      a_vec = _mm_xor_si128(a_vec, a_and_a_mask);
-      print_m128i(a_vec);
-
-
-    }
-
-    // assert(0);
-  }
-}
+//   for (size_t i = 0; i < sizeof(elements) / sizeof(*elements); ++i) {
+//     printf("%04X ", elements[i]);
+//   }
+//   printf("\n");
+// }
 
 void test_aes_transform(void) {
   uint8_t state[] = {0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d,
