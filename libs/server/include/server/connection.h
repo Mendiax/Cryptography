@@ -1,13 +1,12 @@
-#ifndef __SERVER_CLIENT_H__
-#define __SERVER_CLIENT_H__
+#ifndef __SERVER_CONNECTION_H__
+#define __SERVER_CONNECTION_H__
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
 // c includes
-#include <unistd.h>
-#include "server/msg.h"
 
 // my includes
+#include "server/config.h"
 
 // #-------------------------------#
 // |            macros             |
@@ -17,6 +16,12 @@
 // | global types declarations     |
 // #-------------------------------#
 
+
+
+typedef struct {
+    ConnectionState state;
+} Connection;
+
 // #-------------------------------#
 // | global variables declarations |
 // #-------------------------------#
@@ -24,9 +29,6 @@
 // #-------------------------------#
 // | global function declarations  |
 // #-------------------------------#
-PlainMsg* client_send_msg(int client_fd, ServerMsg* msg_p);
-int client_start(const char *server_ip, int port);
-void client_stop(int client_fd);
 
 // #-------------------------------#
 // |  global function definitions  |

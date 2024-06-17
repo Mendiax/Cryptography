@@ -32,7 +32,7 @@
 
 void server_start(int port, ServerRequestHandler request_handler) {
     int server_fd, client_fd;
-    struct sockaddr_in server_addr, client_addr;
+    struct sockaddr_in server_addr;
     socklen_t addr_len = sizeof(server_addr);
     pthread_t thread_id;
     int opt = 1;

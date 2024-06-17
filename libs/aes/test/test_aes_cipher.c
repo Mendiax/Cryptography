@@ -40,15 +40,15 @@ void test_aes_cipher(void) {
   aes_delete_key(&key_p);
 }
 
-static void print_m128i(__m128i resul_vec) {
-  uint16_t elements[sizeof(__m128i) / 2];
-  _mm_storeu_si128((__m128i *)elements, resul_vec);
+// static void print_m128i(__m128i resul_vec) {
+//   uint16_t elements[sizeof(__m128i) / 2];
+//   _mm_storeu_si128((__m128i *)elements, resul_vec);
 
-  for (size_t i = 0; i < sizeof(elements) / sizeof(*elements); ++i) {
-    printf("%04X ", elements[i]);
-  }
-  printf("\n");
-}
+//   for (size_t i = 0; i < sizeof(elements) / sizeof(*elements); ++i) {
+//     printf("%04X ", elements[i]);
+//   }
+//   printf("\n");
+// }
 
 void test_aes_transform(void) {
   uint8_t state[] = {0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d,

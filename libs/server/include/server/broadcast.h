@@ -1,13 +1,12 @@
-#ifndef __SERVER_CLIENT_H__
-#define __SERVER_CLIENT_H__
+#ifndef __SERVER_BROADCAST_H__
+#define __SERVER_BROADCAST_H__
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
 // c includes
-#include <unistd.h>
-#include "server/msg.h"
 
 // my includes
+#include "server/msg.h"
 
 // #-------------------------------#
 // |            macros             |
@@ -24,9 +23,10 @@
 // #-------------------------------#
 // | global function declarations  |
 // #-------------------------------#
-PlainMsg* client_send_msg(int client_fd, ServerMsg* msg_p);
-int client_start(const char *server_ip, int port);
-void client_stop(int client_fd);
+
+void* broadcast_msg_handler(void*);
+
+ClientMsg* broadcast_msg(const ServerMsg* msg_p);
 
 // #-------------------------------#
 // |  global function definitions  |

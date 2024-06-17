@@ -3,13 +3,20 @@
 // |          includes            |
 // #------------------------------#
 // c includes
-
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 // my includes
 #include "server/client.h"
+#include "server/msg.h"
+#include "server/utils.h"
+
+
 
 // #------------------------------#
 // |           macros             |
 // #------------------------------#
+#define BUFFER_SIZE 1000000
 
 // #------------------------------#
 // | global variables definitions |
@@ -26,6 +33,23 @@
 // #------------------------------#
 // | global function definitions  |
 // #------------------------------#
+
+PlainMsg* client_send_msg(int client_fd, ServerMsg* msg_p) {
+
+    // send msg
+    PlainMsg* msg_to_server =  server_msg_serialize(msg_p);
+    write_with_size_prefix(client_fd, msg_to_server->payload, msg_to_server->payload_size);
+    delete_plain_msg(&msg_to_server);
+
+    char* buffer;
+    uint16_t size;
+    if(read_with_size_prefix(client_fd, &buffer, &size)) {
+        perror("Error reading from socket");
+    }
+    PlainMsg* response = new_plain_msg(buffer, size);
+    free(buffer);
+    return response;
+}
 
 int client_start(const char *server_ip, int port) {
     int client_fd;
