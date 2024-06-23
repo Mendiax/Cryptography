@@ -1,83 +1,64 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "dh/dh.h"
 #include <string.h>
-#include <openssl/dh.h>
-#include <openssl/engine.h>
-#include <openssl/err.h>
-
-typedef struct {
-    DH *dh;
-    BIGNUM *pub_key;
-} DH_Party;
-
-void handleErrors() {
-    ERR_print_errors_fp(stderr);
-    abort();
-}
-
-void print_bytes(const char *label, const unsigned char *bytes, size_t len) {
-    printf("%s: ", label);
-    for (size_t i = 0; i < len; ++i) {
-        printf("%02x", bytes[i]);
-    }
-    printf("\n");
-}
-
-void initialize_dh_party(DH_Party *party, int is_server, DH *server_dh) {
-    if (is_server) {
-        party->dh = DH_new();
-        if (!party->dh) handleErrors();
-
-        // Generate parameters
-        if (DH_generate_parameters_ex(party->dh, 2048, DH_GENERATOR_2, NULL) != 1)
-            handleErrors();
-    } else {
-        party->dh = DHparams_dup(server_dh);
-        if (!party->dh) handleErrors();
-    }
-
-    // Generate key pair
-    if (DH_generate_key(party->dh) != 1) handleErrors();
-
-    // Get public key
-    party->pub_key = BN_dup(DH_get0_pub_key(party->dh));
-    if (!party->pub_key) handleErrors();
-}
-
-unsigned char* compute_shared_secret(DH_Party *party, const BIGNUM *peer_pub_key, int *secret_len) {
-    unsigned char *shared_secret = malloc(DH_size(party->dh));
-    if (!shared_secret) handleErrors();
-
-    *secret_len = DH_compute_key(shared_secret, peer_pub_key, party->dh);
-    if (*secret_len == -1) handleErrors();
-
-    return shared_secret;
-}
 
 int main() {
-    DH_Party server, client;
-    int server_secret_len, client_secret_len;
+    ERR_load_crypto_strings();
+    OpenSSL_add_all_algorithms();
 
-    // Initialize server and client
-    initialize_dh_party(&server, 1, NULL);
-    initialize_dh_party(&client, 0, server.dh);
+    EVP_PKEY* server_key = generate_key(CURVE_NAME);
+    EVP_PKEY* client_key = generate_key(CURVE_NAME);
 
-    // Compute shared secrets
-    unsigned char *server_shared_secret = compute_shared_secret(&server, client.pub_key, &server_secret_len);
-    unsigned char *client_shared_secret = compute_shared_secret(&client, server.pub_key, &client_secret_len);
+    char* server_private_key = get_private_key_hex(server_key);
+    char* server_public_key = get_public_key_hex(server_key);
+    char* client_private_key = get_private_key_hex(client_key);
+    char* client_public_key = get_public_key_hex(client_key);
 
-    // Print shared secrets
-    print_bytes("Server shared secret", server_shared_secret, server_secret_len);
-    print_bytes("Client shared secret", client_shared_secret, client_secret_len);
+    printf("Server Private Key: %s\n", server_private_key);
+    printf("Server Public Key: %s\n", server_public_key);
+    printf("Client Private Key: %s\n", client_private_key);
+    printf("Client Public Key: %s\n", client_public_key);
 
-    // Cleanup
-    DH_free(server.dh);
-    BN_free(server.pub_key);
+    char* server_shared_secret = derive_shared_secret(server_key, client_public_key);
+    char* client_shared_secret = derive_shared_secret(client_key, server_public_key);
+
+    printf("Server Shared Secret: %s\n", server_shared_secret);
+    printf("Client Shared Secret: %s\n", client_shared_secret);
+
+    if (strcmp(server_shared_secret, client_shared_secret) == 0) {
+        printf("Shared secrets match.\n");
+    } else {
+        printf("Shared secrets do not match.\n");
+    }
+
+    size_t shared_secret_len = strlen(server_shared_secret) / 2;
+    unsigned char* shared_secret_bin = malloc(shared_secret_len);
+    for (size_t i = 0; i < shared_secret_len; i++) {
+        sscanf(server_shared_secret + 2 * i, "%2hhx", &shared_secret_bin[i]);
+    }
+
+    char* aes_key_128 = derive_aes_key(shared_secret_bin, shared_secret_len, 128);
+    char* aes_key_192 = derive_aes_key(shared_secret_bin, shared_secret_len, 192);
+    char* aes_key_256 = derive_aes_key(shared_secret_bin, shared_secret_len, 256);
+
+    printf("AES-128 Key: %s\n", aes_key_128);
+    printf("AES-192 Key: %s\n", aes_key_192);
+    printf("AES-256 Key: %s\n", aes_key_256);
+
+    EVP_PKEY_free(server_key);
+    EVP_PKEY_free(client_key);
+    OPENSSL_free(server_private_key);
+    OPENSSL_free(server_public_key);
+    OPENSSL_free(client_private_key);
+    OPENSSL_free(client_public_key);
     free(server_shared_secret);
-
-    DH_free(client.dh);
-    BN_free(client.pub_key);
     free(client_shared_secret);
+    free(shared_secret_bin);
+    free(aes_key_128);
+    free(aes_key_192);
+    free(aes_key_256);
+
+    EVP_cleanup();
+    ERR_free_strings();
 
     return 0;
 }
