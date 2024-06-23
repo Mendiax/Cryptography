@@ -12,7 +12,7 @@ if(USE_AVX)
     add_compile_options(-mavx2)
 endif()
 
-option(ENABLE_ASAN "Enable AddressSanitizer" ON)
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 
 if (ENABLE_ASAN)
     message(STATUS "AddressSanitizer enabled")
@@ -20,6 +20,10 @@ if (ENABLE_ASAN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
     set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
 endif()
+
+find_package(OpenSSL REQUIRED)
+message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
 
 add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-truncation)
 # Add main app
@@ -34,4 +38,4 @@ enable_testing()
 # Add subdirectories for libraries
 add_subdirectory(libs/aes)
 add_subdirectory(libs/server)
-
+add_subdirectory(libs/dh)
