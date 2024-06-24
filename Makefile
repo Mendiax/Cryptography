@@ -30,6 +30,9 @@ build_main:
 	cmake $(CMAKE_FLAGS) $(CMAKE_ARGS)
 	cmake --build ./build --parallel $(NPROCS)
 
+rebuild_main:
+	cmake --build ./build --parallel $(NPROCS)
+
 # Build and run all tests
 test: build_main
 	cd $(BUILD_DIR) && make test
@@ -37,7 +40,7 @@ test: build_main
 # Run a specific test
 run_test: build_main
 	# Usage: make run_test TEST_NAME=test_<lib_name>
-	cd $(BUILD_DIR) && ctest -R $(TEST_NAME)
+	cd $(BUILD_DIR) && ctest -R $(TEST_NAME) --output-on-failure
 
 # Run valgrind on the main application
 valgrind: build_main
