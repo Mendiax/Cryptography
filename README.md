@@ -1,7 +1,13 @@
 # Cryptography
+My repository with cryptography implementation.
 
+## Structure
 
-# Performance
+- libs/server - test client-server program
+- libs/aes - AES implementation
+- libs/dh - DH with openssl
+
+## AES Performance
 base implementation performance:
 File size: 16 000 000 bytes (16 MB)
 - Debug
@@ -24,4 +30,4 @@ File size: 16 000 000 bytes (16 MB)
     - Encryption time: 0.193057 seconds
     - Decryption time: 0.649261 seconds
 
-In O3 avx is slower. This happens because in galois_mul() function we pass 1 variable and 1  constant. This creates possibility for compiler to inline code and create code for given constant. With AVX it is not possible so it is a bit slower.
+In O3 avx is slower. This happens because in galois_mul() function we pass 1 variable and 1 constant. This creates possibility for compiler to inline code and create code for given constant. With AVX it is not possible so it is a bit slower.
