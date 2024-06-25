@@ -35,20 +35,7 @@
 // #------------------------------#
 
 PlainMsg* client_send_msg(int client_fd, ServerMsg* msg_p) {
-
-    // send msg
-    PlainMsg* msg_to_server =  server_msg_serialize(msg_p);
-    write_with_size_prefix(client_fd, msg_to_server->payload, msg_to_server->payload_size);
-    delete_plain_msg(&msg_to_server);
-
-    char* buffer;
-    uint16_t size;
-    if(read_with_size_prefix(client_fd, &buffer, &size)) {
-        perror("Error reading from socket");
-    }
-    PlainMsg* response = new_plain_msg(buffer, size);
-    free(buffer);
-    return response;
+    return client_send_msg_enc(client_fd, msg_p, NULL);
 }
 
 int client_start(const char *server_ip, int port) {
@@ -84,6 +71,23 @@ int client_start(const char *server_ip, int port) {
 
 void client_stop(int client_fd) {
     close(client_fd);
+}
+
+PlainMsg* client_send_msg_enc(int client_fd, ServerMsg* msg_p, const Aes_Key* key)
+{
+    // send msg
+    PlainMsg* msg_to_server =  server_msg_serialize(msg_p);
+    write_with_size_prefix(client_fd, msg_to_server->payload, msg_to_server->payload_size, key);
+    delete_plain_msg(&msg_to_server);
+
+    char* buffer;
+    uint16_t size;
+    if(read_with_size_prefix(client_fd, &buffer, &size, key)) {
+        perror("Error reading from socket");
+    }
+    PlainMsg* response = plain_msg_deserialize(buffer);
+    free(buffer);
+    return response;
 }
 
 

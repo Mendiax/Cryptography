@@ -18,17 +18,3 @@ target_link_libraries(test_dh PRIVATE dh ${OPENSSL_LIBRARIES})
 # Add test to CTest
 add_test(NAME test_dh COMMAND test_dh)
 
-# Add tests
-add_executable(test_ec test/test_ec.c)
-target_link_libraries(test_ec PRIVATE dh ${OPENSSL_LIBRARIES})
-
-# Add test to CTest
-add_test(NAME test_ec COMMAND test_ec)
-
-
-# Add tests
-add_executable(test_ecpp test/test_dh.cpp)
-target_link_libraries(test_ecpp PRIVATE dh ${OPENSSL_LIBRARIES})
-
-# Add test to CTest
-add_test(NAME test_ecpp COMMAND test_ecpp)

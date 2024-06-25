@@ -2,7 +2,7 @@
 #include <string.h>
 
 int main() {
-    ERR_load_crypto_strings();
+    // ERR_load_crypto_strings();
     OpenSSL_add_all_algorithms();
 
     EVP_PKEY* server_key = generate_key(CURVE_NAME);
@@ -30,15 +30,13 @@ int main() {
         printf("Shared secrets do not match.\n");
     }
 
-    size_t shared_secret_len = strlen(server_shared_secret) / 2;
-    unsigned char* shared_secret_bin = malloc(shared_secret_len);
-    for (size_t i = 0; i < shared_secret_len; i++) {
-        sscanf(server_shared_secret + 2 * i, "%2hhx", &shared_secret_bin[i]);
-    }
+    // convert to bytes from hex
+    const size_t shared_secret_len = strlen(server_shared_secret)/2;
+    unsigned char* shared_secret_bin = convert_hex_str_to_bytes(server_shared_secret);
 
-    char* aes_key_128 = derive_aes_key(shared_secret_bin, shared_secret_len, 128);
-    char* aes_key_192 = derive_aes_key(shared_secret_bin, shared_secret_len, 192);
-    char* aes_key_256 = derive_aes_key(shared_secret_bin, shared_secret_len, 256);
+    unsigned char* aes_key_128 = derive_aes_key(shared_secret_bin, shared_secret_len, 128);
+    unsigned char* aes_key_192 = derive_aes_key(shared_secret_bin, shared_secret_len, 192);
+    unsigned char* aes_key_256 = derive_aes_key(shared_secret_bin, shared_secret_len, 256);
 
     printf("AES-128 Key: %s\n", aes_key_128);
     printf("AES-192 Key: %s\n", aes_key_192);
@@ -58,7 +56,7 @@ int main() {
     free(aes_key_256);
 
     EVP_cleanup();
-    ERR_free_strings();
+    // ERR_free_strings();
 
     return 0;
 }

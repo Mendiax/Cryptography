@@ -9,11 +9,13 @@ target_include_directories(server PUBLIC
 )
 
 # Optionally, link other libraries if server depends on them
-# target_link_libraries(server PUBLIC some_other_lib)
+target_link_libraries(server PUBLIC aes dh)
 
 # Add tests
 add_executable(test_server test/test_server.c)
 target_link_libraries(test_server PRIVATE server)
-
-# Add test to CTest
 add_test(NAME test_server COMMAND test_server)
+
+add_executable(test_serialize test/test_serialize.c)
+target_link_libraries(test_serialize PRIVATE server)
+add_test(NAME test_serialize COMMAND test_serialize)

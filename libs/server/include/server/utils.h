@@ -6,6 +6,7 @@
 // c includes
 #include <arpa/inet.h>
 // my includes
+#include "aes/aes.h"
 
 // #-------------------------------#
 // |            macros             |
@@ -30,8 +31,8 @@
 // | global function declarations  |
 // #-------------------------------#
 
-int read_with_size_prefix(int fd, char **data, uint16_t *size);
-int write_with_size_prefix(int fd, const char *data, uint16_t size);
+int read_with_size_prefix(int fd, char **data, uint16_t *size, const Aes_Key* key);
+int write_with_size_prefix(int fd, const char *data, uint16_t size, const Aes_Key* key);
 
 // #-------------------------------#
 // |  global function definitions  |

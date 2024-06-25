@@ -197,12 +197,11 @@ char* derive_shared_secret(EVP_PKEY* pkey, const char* hex_peer_public_key) {
     return hex_shared_secret;
 }
 
-char* derive_aes_key(const unsigned char* shared_secret, size_t shared_secret_len, int key_length) {
+unsigned char* derive_aes_key(const unsigned char* shared_secret, size_t shared_secret_len, int key_length) {
     EVP_KDF* kdf;
     EVP_KDF_CTX* kctx;
     unsigned char* aes_key;
-    char* hex_aes_key;
-    size_t aes_key_len = key_length / 8;
+    const size_t aes_key_len = key_length / 8;
 
     kdf = EVP_KDF_fetch(NULL, "HKDF", NULL);
     if (!kdf)
@@ -229,14 +228,22 @@ char* derive_aes_key(const unsigned char* shared_secret, size_t shared_secret_le
     if (EVP_KDF_derive(kctx, aes_key, aes_key_len, NULL) <= 0)
         handleErrors();
 
-    hex_aes_key = get_hex(aes_key, aes_key_len);
-
     EVP_KDF_free(kdf);
     EVP_KDF_CTX_free(kctx);
     free(aes_key);
 
-    return hex_aes_key;
+    return aes_key;
 }
+
+unsigned char* convert_hex_str_to_bytes(const char* hex_str) {
+    const size_t shared_secret_len = strlen(hex_str) / 2;
+    unsigned char* shared_secret_bin = malloc(shared_secret_len);
+    for (size_t i = 0; i < shared_secret_len; i++) {
+        sscanf(hex_str + 2 * i, "%2hhx", &shared_secret_bin[i]);
+    }
+    return  shared_secret_bin;
+}
+
 // #------------------------------#
 // | static functions definitions |
 // #------------------------------#

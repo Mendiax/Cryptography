@@ -17,6 +17,9 @@
 // |           macros             |
 // #------------------------------#
 
+// #define DEBUG(x) x
+#define DEBUG(x, ...)
+
 // #------------------------------#
 // | global variables definitions |
 // #------------------------------#
@@ -33,18 +36,23 @@
 // | global function definitions  |
 // #------------------------------#
 
-int read_with_size_prefix(int fd, char **data, uint16_t *size) {
+/*
+Packet:
+|size (2bytes)| payload (size bytes)|
+*/
+
+int read_with_size_prefix(int fd, char **data, uint16_t *size, const Aes_Key* key) {
    uint16_t size_be;
 
     // First read the size
-    printf("[read] Reading message size\n");
+    DEBUG("[read] Reading message size\n");
     ssize_t read_bytes = read(fd, &size_be, sizeof(uint16_t));
     if (read_bytes != sizeof(uint16_t)) {
         return -1; // Error in reading size
     }
     const uint16_t buffer_size = ntohs(size_be);
-    printf("[read] Read %zd Bytes\n", read_bytes);
-    printf("[read] Got %u Bytes message size\n", buffer_size);
+    DEBUG("[read] Read %zd Bytes\n", read_bytes);
+    DEBUG("[read] Got %u Bytes message size\n", buffer_size);
 
 
     assert(buffer_size > 0);
@@ -52,7 +60,7 @@ int read_with_size_prefix(int fd, char **data, uint16_t *size) {
     if (buffer == NULL) {
         return -1; // Memory allocation error
     }
-    printf("[read] Reading message\n");
+    DEBUG("[read] Reading message\n");
     // Then read the actual data
     read_bytes = read(fd, buffer, buffer_size);
     if (read_bytes != buffer_size) {
@@ -60,27 +68,45 @@ int read_with_size_prefix(int fd, char **data, uint16_t *size) {
         buffer = NULL;
         return -1; // Error in reading data
     }
-    printf("[read] Read %zd\n", read_bytes);
+    DEBUG("[read] Read %zd\n", read_bytes);
+    if (key) {
+        aes_decrypt_aligned((uint8_t*) buffer,  read_bytes, key, (uint8_t*) buffer);
+    }
 
     *data = buffer;
     *size = buffer_size;
     return 0; // Success
 }
 
-int write_with_size_prefix(int fd, const char *data, uint16_t size) {
+int write_with_size_prefix(int fd, const char *data, uint16_t size, const Aes_Key* key) {
+
+    char* buffer;
+    if (key) {
+        // printf("Align length %u", size);
+        size = AES_ALIGN_LENGTH(size);
+        // printf("-> %u\n", size);
+
+        buffer = malloc(size);
+        aes_encrypt_aligned((uint8_t*) data,  size, key, (uint8_t*) buffer);
+    }
+    const char* send_buffer = key == NULL ? data : buffer;
+
     const uint16_t size_be = htons(size);
 
     // First write the size
-    printf("[write] Writing message size %u\n", size);
+    DEBUG("[write] Writing message size %u\n", size);
     ssize_t written = write(fd, &size_be, sizeof(size_be));
     if (written != sizeof(size_be)) {
         return -1; // Error in writing size
     }
-    printf("[write] Writing message\n");
+    DEBUG("[write] Writing message\n");
     // Then write the actual data
-    written = write(fd, data, size);
+    written = write(fd, send_buffer, size);
     if (written != size) {
         return -1; // Error in writing data
+    }
+    if (key) {
+        free(buffer);
     }
 
     return 0; // Success

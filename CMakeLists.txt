@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Crypto)
+project(Crypto LANGUAGES C)
 
 # Set C standards
 set(CMAKE_C_STANDARD 99)
@@ -30,6 +30,7 @@ add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-tr
 add_executable(client_server app/main.c)
 target_link_libraries( client_server
             server
+            aes
     )
 
 # Enable testing
