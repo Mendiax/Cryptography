@@ -38,9 +38,17 @@ int main() {
     unsigned char* aes_key_192 = derive_aes_key(shared_secret_bin, shared_secret_len, 192);
     unsigned char* aes_key_256 = derive_aes_key(shared_secret_bin, shared_secret_len, 256);
 
-    printf("AES-128 Key: %s\n", aes_key_128);
-    printf("AES-192 Key: %s\n", aes_key_192);
-    printf("AES-256 Key: %s\n", aes_key_256);
+
+
+    unsigned char* aes_key_128_hex = get_hex(aes_key_128, 128/8);
+    unsigned char* aes_key_192_hex = get_hex(aes_key_192, 192/8);
+    unsigned char* aes_key_256_hex = get_hex(aes_key_256, 256/8);
+    printf("AES-128 Key: %s\n", aes_key_128_hex);
+    printf("AES-192 Key: %s\n", aes_key_192_hex);
+    printf("AES-256 Key: %s\n", aes_key_256_hex);
+    free(aes_key_128_hex);
+    free(aes_key_192_hex);
+    free(aes_key_256_hex);
 
     EVP_PKEY_free(server_key);
     EVP_PKEY_free(client_key);

@@ -230,7 +230,6 @@ unsigned char* derive_aes_key(const unsigned char* shared_secret, size_t shared_
 
     EVP_KDF_free(kdf);
     EVP_KDF_CTX_free(kctx);
-    free(aes_key);
 
     return aes_key;
 }
