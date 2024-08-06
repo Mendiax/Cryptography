@@ -93,6 +93,7 @@ unsigned char* derive_aes_key(const unsigned char* shared_secret, size_t shared_
 
 
 unsigned char* convert_hex_str_to_bytes(const char* hex_str);
+
 // #-------------------------------#
 // |  global function definitions  |
 // #-------------------------------#

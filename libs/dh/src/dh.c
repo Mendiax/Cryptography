@@ -227,7 +227,7 @@ unsigned char* derive_aes_key(const unsigned char* shared_secret, size_t shared_
 
     if (EVP_KDF_derive(kctx, aes_key, aes_key_len, NULL) <= 0)
         handleErrors();
-
+  
     EVP_KDF_free(kdf);
     EVP_KDF_CTX_free(kctx);
 
