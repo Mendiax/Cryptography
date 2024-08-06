@@ -1,5 +1,8 @@
 # Cryptography
-My repository with cryptography implementation.
+My repository with cryptography implementation. This include:
+- AES implementation in C from scratch
+- DH key exchange in OpenSSL
+- Simple server that uses AES and DH to create encrypted channels for communication
 
 ## Structure
 

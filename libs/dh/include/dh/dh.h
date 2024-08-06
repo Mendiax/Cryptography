@@ -5,7 +5,7 @@
 // #-------------------------------#
 // c includes
 #include <openssl/evp.h>
-
+#include <string.h>
 // my includes
 
 // #-------------------------------#
@@ -87,9 +87,12 @@ char* derive_shared_secret(EVP_PKEY* pkey, const char* hex_peer_public_key);
  *
  * @param shared_secret The shared secret from which the AES key will be derived.
  * @param key_length The length of the AES key to derive (128, 192, or 256 bits).
- * @return A string containing the hexadecimal representation of the derived AES key.
+ * @return A string containing the derived AES key.
  */
-char* derive_aes_key(const unsigned char* shared_secret, size_t shared_secret_len, int key_length);
+unsigned char* derive_aes_key(const unsigned char* shared_secret, size_t shared_secret_len, int key_length);
+
+
+unsigned char* convert_hex_str_to_bytes(const char* hex_str);
 
 // #-------------------------------#
 // |  global function definitions  |

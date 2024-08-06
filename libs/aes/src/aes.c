@@ -81,8 +81,8 @@ void aes_decrypt_block(const uint8_t *input, const Aes_Key *key_p, uint8_t *outp
 
 void aes_encrypt_aligned(const uint8_t *input, size_t input_len, const Aes_Key *key_p, uint8_t *output) {
     // Calculate number of blocks
-    assert(input_len % (128/8) == 0);
-    size_t num_blocks = input_len / 16; // Round up to nearest multiple of 16 bytes
+    assert(AES_IS_ALIGN_LENGTH(input_len));
+    const size_t num_blocks = input_len / 16; // Round up to nearest multiple of 16 bytes
 
     // Process each block
     for (size_t i = 0; i < num_blocks; ++i) {
@@ -100,9 +100,9 @@ void aes_encrypt_aligned(const uint8_t *input, size_t input_len, const Aes_Key *
 
 void aes_decrypt_aligned(const uint8_t *input, size_t input_len, const Aes_Key *key_p, uint8_t *output) {
     // Calculate number of blocks
-    assert(input_len % (128/8) == 0);
+    assert(AES_IS_ALIGN_LENGTH(input_len));
 
-    size_t num_blocks = input_len / 16; // Round up to nearest multiple of 16 bytes
+    const size_t num_blocks = input_len / 16; // Round up to nearest multiple of 16 bytes
 
     // Process each block
     for (size_t i = 0; i < num_blocks; ++i) {

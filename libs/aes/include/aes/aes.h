@@ -13,6 +13,10 @@
 // |            macros             |
 // #-------------------------------#
 
+#define AES_ALIGN_LENGTH(l) (((l + 15)/16) * 16)
+#define AES_IS_ALIGN_LENGTH(l) ((l) % 16 == 0)
+
+
 // #-------------------------------#
 // | global types declarations     |
 // #-------------------------------#

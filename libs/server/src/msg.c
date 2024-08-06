@@ -100,18 +100,20 @@ void delete_client_msg(ClientMsg** msg_pp) {
 _Static_assert(sizeof((PlainMsg){0}.payload_size) == sizeof(uint16_t), "Change htons()!");
 
 PlainMsg* plain_msg_serialize(const PlainMsg *msg) {
-    // copy memory
-    PlainMsg *buffer = new_plain_msg(msg->payload, msg->payload_size);
+    const size_t msg_size = plain_msg_get_size(msg);
+    PlainMsg *buffer = new_plain_msg((char*)msg, msg_size);
     if (buffer == NULL) {
         return NULL;
     }
     // swap byte order
-    buffer->payload_size = htons(msg->payload_size);
+    const uint16_t payload_size = htons(msg->payload_size);
+    memcpy(buffer->payload, &payload_size, sizeof(payload_size));
+
     return buffer;
 }
 
 PlainMsg* plain_msg_deserialize(const char *buffer) {
-    uint16_t payload_size = ntohs(*(uint16_t *)buffer);
+    const uint16_t payload_size = ntohs(*(uint16_t *)buffer);
     PlainMsg *msg = new_plain_msg_empty(payload_size);
     if (msg == NULL) {
         return NULL;
@@ -140,11 +142,10 @@ PlainMsg* server_msg_serialize(const ServerMsg *msg_p) {
            sizeof(token_be));
 
     PlainMsg* serialized_payload = plain_msg_serialize(msg_p->msg_p);
-    const size_t payload_size = plain_msg_get_size(msg_p->msg_p);
 
-    assert(sizeof(ServerMsg) + payload_size == plain_msg_size);
+    assert(sizeof(ServerMsg) + serialized_payload->payload_size == plain_msg_size);
     char* plain_msg_space = buffer->payload + sizeof(ServerMsg);
-    memcpy(plain_msg_space, serialized_payload, payload_size);
+    memcpy(plain_msg_space, serialized_payload->payload, serialized_payload->payload_size);
     delete_plain_msg(&serialized_payload);
 
     return buffer;
